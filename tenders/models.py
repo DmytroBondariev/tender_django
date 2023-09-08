@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.urls import reverse
 
@@ -20,6 +21,5 @@ class Tender(models.Model):
         return reverse("tenders:tender-detail", kwargs={"pk": self.id})
 
 
-
-
-
+class User(AbstractUser):
+    pass
