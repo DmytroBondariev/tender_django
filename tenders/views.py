@@ -1,3 +1,4 @@
+import requests
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.db.models import Sum
@@ -7,6 +8,16 @@ from django.views import generic
 
 from tenders.forms import UserLoginForm
 from tenders.models import Tender
+
+api_url = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
+response = requests.get(api_url)
+data = response.json()
+for item in data['data'][:10]:
+    tender = Tender(
+        tender_id=item['id'],
+        date_modified=item['dateModified']
+    )
+    tender.save()
 
 
 class IndexView(LoginView):
@@ -32,4 +43,3 @@ class TenderListView(generic.ListView, LoginRequiredMixin):
         tenders = Tender.objects.all()
         total_tender_amount = Tender.objects.aggregate(total_amount=Sum('amount'))['total_amount']
         return tenders, total_tender_amount
-

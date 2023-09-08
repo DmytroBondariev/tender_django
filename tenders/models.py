@@ -5,8 +5,8 @@ from django.urls import reverse
 
 class Tender(models.Model):
     tender_id = models.CharField(max_length=255, unique=True)
-    description = models.TextField()
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(null=True)
+    amount = models.DecimalField(max_digits=15, decimal_places=2, null=True)
     date_modified = models.DateTimeField()
 
     class Meta:
