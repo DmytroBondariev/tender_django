@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import generic
 
+from tenders.forms import UserLoginForm
 from tenders.models import Tender
 
 
