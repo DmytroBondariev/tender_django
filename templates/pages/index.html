@@ -11,7 +11,7 @@
   <p>Please log in to see this page.</p>
 {% endif %}
 
-<form method="post" action="#">
+<form method="post">
   {% csrf_token %}
   {{ form|crispy }}
 
