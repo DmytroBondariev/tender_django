@@ -108,7 +108,7 @@ AUTH_USER_MODEL = "tenders.User"
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Ukraine/Kiev'
+TIME_ZONE = 'Europe/Kiev'
 
 USE_I18N = True
 
