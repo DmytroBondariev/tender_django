@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+{% block content %}
+    <div class="container">
+        <div class="mb-4">
+            <h1>Task Tracker</h1>
+            {% if user.position.name == "CEO" or user.position.name == "Project Manager" %}
+              <a href="#" class="btn btn-primary link-to-page">
+                  Create new task
+              </a>
+            {% else %}
+              Only CEO or Project Managers are allowed to create tasks!
+            {% endif %}
+        </div>
+
+{#        <form action="" method="get" class="mb-4">#}
+{#            <div class="input-group">#}
+{#                {{ search_form|crispy }}#}
+{#                <button type="submit" class="btn btn-secondary">Search</button>#}
+{#            </div>#}
+{#        </form>#}
+
+        {% if tender_list %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Date modified</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tender in tender_list %}
+                            <tr>
+                                <td>{{ tender.tender_id }}</td>
+                                <td>{{ tender.description }}</td>
+                                <td>{{ tender.amount }}</td>
+                                <td>{{ tender.date_modified }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>There are no tenders available</p>
+        {% endif %}
+    </div>
+{% endblock %}
