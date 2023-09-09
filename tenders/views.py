@@ -13,6 +13,8 @@ api_url = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
 response = requests.get(api_url)
 data = response.json()
 for item in data['data'][:10]:
+    if Tender.objects.filter(tender_id=item['id']).exists():
+        continue
     tender = Tender(
         tender_id=item['id'],
         date_modified=item['dateModified']
