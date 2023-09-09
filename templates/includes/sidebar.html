@@ -1,13 +1,27 @@
 <ul class="sidebar-nav list-group">
   {% if user.is_authenticated %}
-    <li class="list-group-item">User: <a href="{{ user.get_absolute_url }}">{{ user.get_username }}</a></li>
+    <li class="list-group-item">User: {{ user.get_username }}</li>
+    <li class="list-group-item"><a href="{% url 'tenders:logout'%}">Tenders</a></li>
+    <li class="list-group-item"><a href="https://nszu.gov.ua/">НСЗУ</a></li>
+    <br>
     <li class="list-group-item"><a href="{% url 'tenders:logout'%}">Logout</a></li>
+  {% else %}
+    <li class="list-group-item"><a href="{% url 'tenders:index'%}">Login</a></li>
+{#  <li class="list-group-item"><a href="{% url 'tenders:register'%}">Register</a></li>#}
+    <li class="list-group-item"><a href="{% url 'tenders:tender-list'%}">Tenders</a></li>
+    <li class="list-group-item"><a href="https://nszu.gov.ua/">НСЗУ</a></li>
+
   {% endif %}
 
-  <br>
-
-  <li class="list-group-item">
-    <a href="{% url 'tenders:index'%}">Tenders</a>
-  </li>
-  <li class="list-group-item"><a href="https://nszu.gov.ua/">НСЗУ</a></li>
+{#  <br>#}
+{##}
+{#  <li class="list-group-item">#}
+{#    {% if user.is_authenticated %}#}
+{#      <a href="{% url 'tenders:profile'%}">Profile</a>#}
+{#    {% else %}#}
+{#      <a href="{% url 'tenders:login'%}">Login</a>#}
+{#    #}
+{#    <a href="{% url 'tenders:index'%}">Tenders</a>#}
+{#  </li>#}
+{#  <li class="list-group-item"><a href="https://nszu.gov.ua/">НСЗУ</a></li>#}
 </ul>
