@@ -1,11 +1,13 @@
 import requests
+from django.contrib.auth import get_user_model, forms
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.db.models import Sum
+from django.urls import reverse_lazy
 from django.views import generic
 
-
-from tenders.models import Tender
+from tenders.forms import UserCreateForm
+from tenders.models import Tender, User
 
 api_url = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
 response = requests.get(api_url)
@@ -18,6 +20,25 @@ for item in data['data'][:10]:
         date_modified=item['dateModified']
     )
     tender.save()
+
+
+class RegisterView(generic.CreateView):
+    model = User
+    template_name = 'registration/register.html'
+    success_url = reverse_lazy('tenders:index')
+    form_class = UserCreateForm
+
+    @staticmethod
+    def create_user(form):
+        if form.is_valid():
+            if User.objects.filter(username=form.cleaned_data['username']).exists():
+                raise forms.ValidationError("Username already exists")
+            user = User.objects.create_user(
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password1']
+            )
+            user.save()
+            return user
 
 
 class IndexView(LoginView):
