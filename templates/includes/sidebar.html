@@ -2,11 +2,10 @@
   {% if user.is_authenticated %}
     <li class="list-group-item">User: <a href="{{ user.get_absolute_url }}">{{ user.get_username }}</a></li>
     <li class="list-group-item"><a href="{% url 'tenders:logout'%}?next={{request.path}}">Logout</a></li>
-  {% else %}
-    <li class="list-group-item"><a href="{% url 'tenders:index'%}?next={{request.path}}">Login</a></li>
   {% endif %}
 
   <br>
 
   <li class="list-group-item"><a href="#">Tenders</a></li>
+  <li class="list-group-item"><a href="https://nszu.gov.ua/">НСЗУ</a></li>
 </ul>
