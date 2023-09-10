@@ -45,7 +45,16 @@
                 </table>
             </div>
         {% else %}
-            <p>There are no tenders available</p>
+            <table class="table table-striped">
+              <thead>
+                  <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Description</th>
+                      <th scope="col">Amount</th>
+                      <th scope="col">Date modified</th>
+                  </tr>
+              </thead>
+             </table>
         {% endif %}
     </div>
 {% endblock %}

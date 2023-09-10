@@ -67,7 +67,8 @@ class ButtonToGetTenderView(generic.View):
                     )
                     tender.save()
 
-            return HttpResponseRedirect(reverse_lazy("tenders:tender-list"))
-
         except requests.exceptions.RequestException as e:
             print(e)
+
+        finally:
+            return HttpResponseRedirect(reverse_lazy("tenders:tender-list"))
