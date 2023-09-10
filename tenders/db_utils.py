@@ -21,7 +21,8 @@ def save_tender(tender):
     tender.save()
 
 
-""" Update an existing tender's information in the database if it has changed since the last update. """
+""" Update an existing tender's information in the database if it has changed since the last update.
+It takes additional time to check if the information has changed, but it is necessary to avoid"""
 
 
 @sync_to_async
