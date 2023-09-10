@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model, forms
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.db.models import Sum
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views import generic
 
@@ -10,16 +11,6 @@ from tenders.forms import UserCreateForm
 from tenders.models import Tender, User
 
 API_URL = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
-# response = requests.get(api_url)
-# data = response.json()
-# for item in data['data'][:10]:
-#     if Tender.objects.filter(tender_id=item['id']).exists():
-#         continue
-#     tender = Tender(
-#         tender_id=item['id'],
-#         date_modified=item['dateModified']
-#     )
-#     tender.save()
 
 
 class RegisterView(generic.CreateView):
@@ -58,19 +49,6 @@ class TenderListView(LoginRequiredMixin, generic.ListView):
         return tenders
 
 
-# class ToggleAssignToTaskView(generic.View):
-#     @staticmethod
-#     def post(request, pk):
-#         worker = Worker.objects.get(id=request.user.id)
-#         task = Task.objects.get(id=pk)
-#         if task in worker.tasks.all():
-#             worker.tasks.remove(task)
-#         else:
-#             worker.tasks.add(task)
-#         return HttpResponseRedirect(
-#             reverse_lazy("task_manager:task-detail", args=[pk])
-#         )
-
 class ButtonToGetTenderView(generic.View):
     @staticmethod
     def post(request):
@@ -84,3 +62,6 @@ class ButtonToGetTenderView(generic.View):
                 date_modified=item['dateModified']
             )
             tender.save()
+        return HttpResponseRedirect(
+            reverse_lazy("tenders:tender-list")
+        )
