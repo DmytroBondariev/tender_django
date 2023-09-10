@@ -19,6 +19,25 @@ BATCH_SIZE = 10
 logger = logging.getLogger()
 
 
+def get_tenders_info(url):
+    response = requests.get(API_URL)
+    response.raise_for_status()
+
+    data = response.json()
+
+    for item in data['data'][:BATCH_SIZE]:
+        if not Tender.objects.filter(tender_id=item['id']).exists():
+            amount, description = get_detailed_tender_info(item['id']).values()
+            tender = Tender(
+                tender_id=item['id'],
+                date_modified=item['dateModified'],
+                amount=amount,
+                description=description
+
+            )
+            tender.save()
+
+
 def get_detailed_tender_info(tender_id):
     try:
         response = requests.get(f"{DETAIL_API_URL}{tender_id}")
@@ -80,25 +99,10 @@ class ButtonToGetTenderView(generic.View):
     @staticmethod
     def post(request):
         try:
-            response = requests.get(API_URL)
-            response.raise_for_status()
-
-            data = response.json()
-
-            for item in data['data'][:BATCH_SIZE]:
-                if not Tender.objects.filter(tender_id=item['id']).exists():
-                    amount, description = get_detailed_tender_info(item['id']).values()
-                    tender = Tender(
-                        tender_id=item['id'],
-                        date_modified=item['dateModified'],
-                        amount=amount,
-                        description=description
-
-                    )
-                    tender.save()
+            get_tenders_info(API_URL)
 
         except requests.exceptions.RequestException as e:
-            print(e)
+            logger.error(f"Error fetching tenders: {e}")
 
         finally:
             return HttpResponseRedirect(reverse_lazy("tenders:tender-list"))
