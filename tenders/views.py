@@ -1,3 +1,5 @@
+import logging
+
 import requests
 from django.contrib.auth import get_user_model, forms
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -13,6 +15,8 @@ from tenders.models import Tender, User
 API_URL = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
 DETAIL_API_URL = "https://public.api.openprocurement.org/api/0/tenders/"
 BATCH_SIZE = 10
+
+logger = logging.getLogger()
 
 
 def get_detailed_tender_info(tender_id):
@@ -30,7 +34,8 @@ def get_detailed_tender_info(tender_id):
             description = "Опис не надано"
         return dict(amount=amount, description=description)
     except requests.exceptions.RequestException as e:
-        print(e)
+        logger.error(f"Error fetching tender info: {e}")
+        return None
 
 
 class RegisterView(generic.CreateView):
@@ -64,10 +69,10 @@ class TenderListView(LoginRequiredMixin, generic.ListView):
     login_url = "/"
 
     def get_context_data(self, *, object_list=None, **kwargs):
-        context = super(TenderListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         if Tender.objects.exists():
-            context['total_tender_amount'] = round(Tender.objects.aggregate(Sum('amount'))['amount__sum'], 2)
-
+            total_tender_amount = round(Tender.objects.aggregate(Sum('amount'))['amount__sum'], 2)
+            context['total_tender_amount'] = total_tender_amount
         return context
 
 
