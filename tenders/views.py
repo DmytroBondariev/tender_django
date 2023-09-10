@@ -12,7 +12,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 
 from tenders.forms import UserCreateForm
-from tenders.models import Tender, User
+from tenders.models import Tender
 
 API_URL = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
 DETAIL_API_URL = "https://public.api.openprocurement.org/api/0/tenders/"
@@ -20,16 +20,24 @@ BATCH_SIZE = 10
 
 logger = logging.getLogger()
 
+""" Check if a tender with the given ID exists in the database. """
+
 
 @sync_to_async
 def check_tender_exists(tender_id):
     return Tender.objects.filter(tender_id=tender_id).exists()
 
 
+""" Save a tender object to the database. """
+
+
 @sync_to_async
 @transaction.atomic
 def save_tender(tender):
     tender.save()
+
+
+""" Update an existing tender's information in the database if it has changed since the last update. """
 
 
 @sync_to_async
@@ -43,6 +51,9 @@ def update_tender(tender_id, date_modified, amount, description):
         tender.save()
     else:
         logger.info(f"Tender {tender_id} is up to date")
+
+
+""" Fetch information about tenders from the specified API URL. """
 
 
 async def get_tenders_info_all(url):
@@ -59,6 +70,9 @@ async def get_tenders_info_all(url):
                 tasks.append(fetch_tender_details(item['id'], client, update=True))
 
         await asyncio.gather(*tasks)
+
+
+""" Fetch details of a tender from the API and update the database. """
 
 
 async def fetch_tender_details(tender_id, client, update=False):
@@ -84,28 +98,24 @@ async def fetch_tender_details(tender_id, client, update=False):
         logger.error(f"Error fetching tender {tender_id}: {e}")
 
 
+""" User registration view. """
+
+
 class RegisterView(generic.CreateView):
     model = get_user_model()
     template_name = 'registration/register.html'
     success_url = reverse_lazy('tenders:index')
     form_class = UserCreateForm
 
-    @staticmethod
-    def create_user(form):
-        if form.is_valid():
-            if User.objects.filter(username=form.cleaned_data['username']).exists():
-                raise forms.ValidationError("Username already exists")
-            user = User.objects.create_user(
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password1']
-            )
-            user.save()
-            return user
-
 
 class IndexView(LoginView):
     template_name = "pages/index.html"
     redirect_authenticated_user = True
+
+
+""" Add the total amount of all tenders to the context. This is done in a separate view because the total amount is
+displayed on every page, and it would be inefficient to calculate it every time a page is loaded.
+Login url is set to "/" to redefine the default account/login/ url. """
 
 
 class TenderListView(LoginRequiredMixin, generic.ListView):
@@ -120,6 +130,9 @@ class TenderListView(LoginRequiredMixin, generic.ListView):
             total_tender_amount = round(Tender.objects.aggregate(Sum('amount'))['amount__sum'], 2)
             context['total_tender_amount'] = total_tender_amount
         return context
+
+
+""" Button handler view to initiate the process of fetching tenders from the API. """
 
 
 async def button_to_fetch_tender(request):

@@ -1,10 +1,11 @@
-from django.contrib.auth.forms import AuthenticationForm, UsernameField, UserCreationForm
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm
 
 
-from tenders.models import User
+"""Forms for authentication and user creation with model User."""
 
 
 class UserCreateForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
-        model = User
+        model = get_user_model()
         fields = UserCreationForm.Meta.fields

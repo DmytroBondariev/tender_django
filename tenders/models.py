@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.urls import reverse
 
 
 class Tender(models.Model):
@@ -16,9 +15,6 @@ class Tender(models.Model):
 
     def __str__(self):
         return f"Tender id: {self.tender_id}; ({self.description}, {self.amount}). Date modified: {self.date_modified}"
-
-    def get_absolute_url(self):
-        return reverse("tenders:tender-detail", kwargs={"pk": self.id})
 
 
 class User(AbstractUser):
