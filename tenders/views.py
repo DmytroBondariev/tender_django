@@ -1,9 +1,11 @@
+import asyncio
 import logging
-
-import requests
+import httpx
+from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model, forms
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
+from django.db import transaction
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -19,34 +21,49 @@ BATCH_SIZE = 10
 logger = logging.getLogger()
 
 
-def get_tenders_info_all(url):
-    response = requests.get(API_URL)
-    response.raise_for_status()
+@sync_to_async
+def check_tender_exists(tender_id):
+    return Tender.objects.filter(tender_id=tender_id).exists()
 
-    data = response.json()
-    for item in data['data'][:BATCH_SIZE]:
-        if not Tender.objects.filter(tender_id=item['id']).exists():
-            tender_page = requests.get(f"{DETAIL_API_URL}{item['id']}")
-            tender_page.raise_for_status()
-            tender_data = tender_page.json()
-            tender_id = tender_data['data']["plans"][0]["id"]
-            date_modified = tender_data['data']['dateModified']
-            if tender_data['data']['value']['amount'] not in (None, ""):
-                amount = tender_data['data']['value']['amount']
-            else:
-                amount = 0
-            if "description" in tender_data['data'].keys() and tender_data['data']['description'] not in (None, ""):
-                description = tender_data['data']['description']
-            else:
-                description = "Опис не надано"
-            tender = Tender(
-                tender_id=tender_id,
-                date_modified=date_modified,
-                amount=amount,
-                description=description
 
-            )
-            tender.save()
+@sync_to_async
+@transaction.atomic
+def save_tender(tender):
+    tender.save()
+
+
+async def get_tenders_info_all(url):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        response.raise_for_status()
+        data = response.json()
+        tasks = []
+
+        for item in data['data'][:BATCH_SIZE]:
+            if not await check_tender_exists(item['id']):
+                tender_page = await client.get(f"{DETAIL_API_URL}{item['id']}")
+                tender_page.raise_for_status()
+                tender_data = tender_page.json()
+                tender_id = item['id']
+                date_modified = tender_data['data']['dateModified']
+                if tender_data['data']['value']['amount'] not in (None, ""):
+                    amount = tender_data['data']['value']['amount']
+                else:
+                    amount = 0
+                if "description" in tender_data['data'].keys() and tender_data['data']['description'] not in (None, ""):
+                    description = tender_data['data']['description']
+                else:
+                    description = "Опис не надано"
+
+                tender = Tender(
+                    tender_id=tender_id,
+                    date_modified=date_modified,
+                    amount=amount,
+                    description=description
+                )
+                await save_tender(tender)
+
+        await asyncio.gather(*tasks)
 
 
 class RegisterView(generic.CreateView):
@@ -87,14 +104,9 @@ class TenderListView(LoginRequiredMixin, generic.ListView):
         return context
 
 
-class ButtonToGetTenderView(generic.View):
-    @staticmethod
-    def post(request):
-        try:
-            get_tenders_info_all(API_URL)
-
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching tenders: {e}")
-
-        finally:
-            return HttpResponseRedirect(reverse_lazy("tenders:tender-list"))
+async def button_to_fetch_tender(request):
+    try:
+        await get_tenders_info_all(API_URL)
+    except httpx.RequestError as e:
+        logger.error(f"Error fetching tenders: {e}")
+    return HttpResponseRedirect(reverse_lazy("tenders:tender-list"))
