@@ -11,10 +11,11 @@ from tenders.forms import UserCreateForm
 from tenders.models import Tender, User
 
 API_URL = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
+BATCH_SIZE = 10
 
 
 class RegisterView(generic.CreateView):
-    model = User
+    model = get_user_model()
     template_name = 'registration/register.html'
     success_url = reverse_lazy('tenders:index')
     form_class = UserCreateForm
@@ -52,16 +53,21 @@ class TenderListView(LoginRequiredMixin, generic.ListView):
 class ButtonToGetTenderView(generic.View):
     @staticmethod
     def post(request):
-        response = requests.get(API_URL)
-        data = response.json()
-        for item in data['data'][:10]:
-            if Tender.objects.filter(tender_id=item['id']).exists():
-                continue
-            tender = Tender(
-                tender_id=item['id'],
-                date_modified=item['dateModified']
-            )
-            tender.save()
-        return HttpResponseRedirect(
-            reverse_lazy("tenders:tender-list")
-        )
+        try:
+            response = requests.get(API_URL)
+            response.raise_for_status()
+
+            data = response.json()
+
+            for item in data['data'][:BATCH_SIZE]:
+                if not Tender.objects.filter(tender_id=item['id']).exists():
+                    tender = Tender(
+                        tender_id=item['id'],
+                        date_modified=item['dateModified']
+                    )
+                    tender.save()
+
+            return HttpResponseRedirect(reverse_lazy("tenders:tender-list"))
+
+        except requests.exceptions.RequestException as e:
+            print(e)
