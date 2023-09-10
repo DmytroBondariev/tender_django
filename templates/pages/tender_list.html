@@ -3,14 +3,13 @@
 {% block content %}
     <div class="container">
         <div class="mb-4">
-            <h1>Task Tracker</h1>
-            {% if user.position.name == "CEO" or user.position.name == "Project Manager" %}
-              <a href="#" class="btn btn-primary link-to-page">
-                  Create new task
-              </a>
+            <h1>Tender list</h1>
+            {% if tender_list %}
+                  Загальна сума: {сума по тендерах}
             {% else %}
-              Only CEO or Project Managers are allowed to create tasks!
+              Наразі тендери відсутні в базі даних. Оновіть дані за допомогою кнопки "Оновити дані"
             {% endif %}
+            <a href="#" class="btn btn-primary link-to-page"></a>
         </div>
 
 {#        <form action="" method="get" class="mb-4">#}
