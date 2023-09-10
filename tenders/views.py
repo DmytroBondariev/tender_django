@@ -41,29 +41,29 @@ async def get_tenders_info_all(url):
 
         for item in data['data'][:BATCH_SIZE]:
             if not await check_tender_exists(item['id']):
-                tender_page = await client.get(f"{DETAIL_API_URL}{item['id']}")
-                tender_page.raise_for_status()
-                tender_data = tender_page.json()
-                tender_id = item['id']
-                date_modified = tender_data['data']['dateModified']
-                if tender_data['data']['value']['amount'] not in (None, ""):
-                    amount = tender_data['data']['value']['amount']
-                else:
-                    amount = 0
-                if "description" in tender_data['data'].keys() and tender_data['data']['description'] not in (None, ""):
-                    description = tender_data['data']['description']
-                else:
-                    description = "Опис не надано"
-
-                tender = Tender(
-                    tender_id=tender_id,
-                    date_modified=date_modified,
-                    amount=amount,
-                    description=description
-                )
-                await save_tender(tender)
+                tasks.append(fetch_tender_details(item['id'], client))
 
         await asyncio.gather(*tasks)
+
+
+async def fetch_tender_details(tender_id, client):
+    try:
+        tender_page = await client.get(f"{DETAIL_API_URL}{tender_id}")
+        tender_page.raise_for_status()
+        tender_data = tender_page.json()
+        date_modified = tender_data['data']['dateModified']
+        amount = tender_data['data']['value']['amount'] or 0
+        description = tender_data['data'].get('description') or 'Опис не надано'
+
+        tender = Tender(
+            tender_id=tender_id,
+            date_modified=date_modified,
+            amount=amount,
+            description=description
+        )
+        await save_tender(tender)
+    except httpx.RequestError as e:
+        logger.error(f"Error fetching tender {tender_id}: {e}")
 
 
 class RegisterView(generic.CreateView):
