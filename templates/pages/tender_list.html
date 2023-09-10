@@ -5,18 +5,11 @@
         <div class="mb-4">
             <h1>Tender list</h1>
             {% if tender_list %}
-                  Загальна сума: {сума по тендерах}
+              Загальна сума:<span style="color: red"> {{ total_tender_amount }} грн.</span>
             {% else %}
               Наразі тендери відсутні в базі даних. Оновіть дані за допомогою кнопки "Оновити дані"
             {% endif %}
         </div>
-
-{#        <form action="" method="get" class="mb-4">#}
-{#            <div class="input-group">#}
-{#                {{ search_form|crispy }}#}
-{#                <button type="submit" class="btn btn-secondary">Search</button>#}
-{#            </div>#}
-{#        </form>#}
         <form method="post" action="{% url 'tenders:tender-update-button' %}">
           {% csrf_token %}
           <input class="btn btn-primary link-to-page" type="submit" value="Оновити дані">
