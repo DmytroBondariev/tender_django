@@ -19,42 +19,34 @@ BATCH_SIZE = 10
 logger = logging.getLogger()
 
 
-def get_tenders_info(url):
+def get_tenders_info_all(url):
     response = requests.get(API_URL)
     response.raise_for_status()
 
     data = response.json()
-
     for item in data['data'][:BATCH_SIZE]:
         if not Tender.objects.filter(tender_id=item['id']).exists():
-            amount, description = get_detailed_tender_info(item['id']).values()
+            tender_page = requests.get(f"{DETAIL_API_URL}{item['id']}")
+            tender_page.raise_for_status()
+            tender_data = tender_page.json()
+            tender_id = tender_data['data']["plans"][0]["id"]
+            date_modified = tender_data['data']['dateModified']
+            if tender_data['data']['value']['amount'] not in (None, ""):
+                amount = tender_data['data']['value']['amount']
+            else:
+                amount = 0
+            if "description" in tender_data['data'].keys() and tender_data['data']['description'] not in (None, ""):
+                description = tender_data['data']['description']
+            else:
+                description = "Опис не надано"
             tender = Tender(
-                tender_id=item['id'],
-                date_modified=item['dateModified'],
+                tender_id=tender_id,
+                date_modified=date_modified,
                 amount=amount,
                 description=description
 
             )
             tender.save()
-
-
-def get_detailed_tender_info(tender_id):
-    try:
-        response = requests.get(f"{DETAIL_API_URL}{tender_id}")
-        response.raise_for_status()
-        data = response.json()
-        if data['data']['value']['amount'] not in (None, ""):
-            amount = data['data']['value']['amount']
-        else:
-            amount = 0
-        if "description" in data['data'].keys() and data['data']['description'] not in (None, ""):
-            description = data['data']['description']
-        else:
-            description = "Опис не надано"
-        return dict(amount=amount, description=description)
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Error fetching tender info: {e}")
-        return None
 
 
 class RegisterView(generic.CreateView):
@@ -99,7 +91,7 @@ class ButtonToGetTenderView(generic.View):
     @staticmethod
     def post(request):
         try:
-            get_tenders_info(API_URL)
+            get_tenders_info_all(API_URL)
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Error fetching tenders: {e}")
