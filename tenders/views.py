@@ -36,10 +36,13 @@ def save_tender(tender):
 @transaction.atomic
 def update_tender(tender_id, date_modified, amount, description):
     tender = Tender.objects.get(tender_id=tender_id)
-    tender.date_modified = date_modified
-    tender.amount = amount
-    tender.description = description
-    tender.save()
+    if tender.date_modified != date_modified or tender.amount != amount or tender.description != description:
+        tender.date_modified = date_modified
+        tender.amount = amount
+        tender.description = description
+        tender.save()
+    else:
+        logger.info(f"Tender {tender_id} is up to date")
 
 
 async def get_tenders_info_all(url):
