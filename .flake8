@@ -1,0 +1,14 @@
+[flake8]
+inline-quotes = "
+ignore = E203, E266, W503, N807, N818, F401
+max-line-length = 79
+max-complexity = 18
+select = B,C,E,F,W,T4,B9,Q0,N8,VNE
+exclude =
+    **migrations
+    venv
+    tender_django/asgi.py
+    tender_django/settings.py
+    tender_django/wsgi.py
+    tenders/db_utils.py
+    manage.py

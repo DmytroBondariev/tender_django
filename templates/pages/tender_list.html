@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+{% block content %}
+    <div class="container">
+        <div class="mb-4">
+            <h1>Tender list</h1>
+            {% if tender_list %}
+              Загальна сума:<span style="color: red"> {{ total_tender_amount }} грн.</span>
+            {% else %}
+              Наразі тендери відсутні в базі даних. Оновіть дані за допомогою кнопки "Оновити дані"
+            {% endif %}
+        </div>
+        <form method="post" action="{% url 'tenders:tender-update-button' %}">
+          {% csrf_token %}
+          <input class="btn btn-primary link-to-page" type="submit" value="Оновити дані">
+        </form>
+        {% if tender_list %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Date modified</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tender in tender_list %}
+                            <tr>
+                                <td>{{ tender.tender_id }}</td>
+                                <td>{{ tender.description }}</td>
+                                <td>{{ tender.amount }}</td>
+                                <td>{{ tender.date_modified }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <table class="table table-striped">
+              <thead>
+                  <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Description</th>
+                      <th scope="col">Amount</th>
+                      <th scope="col">Date modified</th>
+                  </tr>
+              </thead>
+             </table>
+        {% endif %}
+    </div>
+{% endblock %}
