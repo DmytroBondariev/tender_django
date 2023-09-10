@@ -32,6 +32,16 @@ def save_tender(tender):
     tender.save()
 
 
+@sync_to_async
+@transaction.atomic
+def update_tender(tender_id, date_modified, amount, description):
+    tender = Tender.objects.get(tender_id=tender_id)
+    tender.date_modified = date_modified
+    tender.amount = amount
+    tender.description = description
+    tender.save()
+
+
 async def get_tenders_info_all(url):
     async with httpx.AsyncClient() as client:
         response = await client.get(url)
@@ -42,11 +52,13 @@ async def get_tenders_info_all(url):
         for item in data['data'][:BATCH_SIZE]:
             if not await check_tender_exists(item['id']):
                 tasks.append(fetch_tender_details(item['id'], client))
+            else:
+                tasks.append(fetch_tender_details(item['id'], client, update=True))
 
         await asyncio.gather(*tasks)
 
 
-async def fetch_tender_details(tender_id, client):
+async def fetch_tender_details(tender_id, client, update=False):
     try:
         tender_page = await client.get(f"{DETAIL_API_URL}{tender_id}")
         tender_page.raise_for_status()
@@ -55,13 +67,16 @@ async def fetch_tender_details(tender_id, client):
         amount = tender_data['data']['value']['amount'] or 0
         description = tender_data['data'].get('description') or 'Опис не надано'
 
-        tender = Tender(
-            tender_id=tender_id,
-            date_modified=date_modified,
-            amount=amount,
-            description=description
-        )
-        await save_tender(tender)
+        if update:
+            await update_tender(tender_id, date_modified, amount, description)
+        else:
+            tender = Tender(
+                tender_id=tender_id,
+                date_modified=date_modified,
+                amount=amount,
+                description=description
+            )
+            await save_tender(tender)
     except httpx.RequestError as e:
         logger.error(f"Error fetching tender {tender_id}: {e}")
 
