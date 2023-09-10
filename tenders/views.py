@@ -63,10 +63,12 @@ class TenderListView(LoginRequiredMixin, generic.ListView):
     template_name = "pages/tender_list.html"
     login_url = "/"
 
-    def get_queryset(self):
-        tenders = Tender.objects.all()
-        # total_tender_amount = Tender.objects.aggregate(total_amount=Sum('amount'))['total_amount']
-        return tenders
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(TenderListView, self).get_context_data(**kwargs)
+        if Tender.objects.exists():
+            context['total_tender_amount'] = round(Tender.objects.aggregate(Sum('amount'))['amount__sum'], 2)
+
+        return context
 
 
 class ButtonToGetTenderView(generic.View):
