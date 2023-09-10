@@ -9,17 +9,17 @@ from django.views import generic
 from tenders.forms import UserCreateForm
 from tenders.models import Tender, User
 
-api_url = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
-response = requests.get(api_url)
-data = response.json()
-for item in data['data'][:10]:
-    if Tender.objects.filter(tender_id=item['id']).exists():
-        continue
-    tender = Tender(
-        tender_id=item['id'],
-        date_modified=item['dateModified']
-    )
-    tender.save()
+API_URL = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
+# response = requests.get(api_url)
+# data = response.json()
+# for item in data['data'][:10]:
+#     if Tender.objects.filter(tender_id=item['id']).exists():
+#         continue
+#     tender = Tender(
+#         tender_id=item['id'],
+#         date_modified=item['dateModified']
+#     )
+#     tender.save()
 
 
 class RegisterView(generic.CreateView):
@@ -56,3 +56,31 @@ class TenderListView(LoginRequiredMixin, generic.ListView):
         tenders = Tender.objects.all()
         # total_tender_amount = Tender.objects.aggregate(total_amount=Sum('amount'))['total_amount']
         return tenders
+
+
+# class ToggleAssignToTaskView(generic.View):
+#     @staticmethod
+#     def post(request, pk):
+#         worker = Worker.objects.get(id=request.user.id)
+#         task = Task.objects.get(id=pk)
+#         if task in worker.tasks.all():
+#             worker.tasks.remove(task)
+#         else:
+#             worker.tasks.add(task)
+#         return HttpResponseRedirect(
+#             reverse_lazy("task_manager:task-detail", args=[pk])
+#         )
+
+class ButtonToGetTenderView(generic.View):
+    @staticmethod
+    def post(request):
+        response = requests.get(API_URL)
+        data = response.json()
+        for item in data['data'][:10]:
+            if Tender.objects.filter(tender_id=item['id']).exists():
+                continue
+            tender = Tender(
+                tender_id=item['id'],
+                date_modified=item['dateModified']
+            )
+            tender.save()
