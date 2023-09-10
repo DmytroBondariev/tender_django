@@ -11,7 +11,26 @@ from tenders.forms import UserCreateForm
 from tenders.models import Tender, User
 
 API_URL = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
+DETAIL_API_URL = "https://public.api.openprocurement.org/api/0/tenders/"
 BATCH_SIZE = 10
+
+
+def get_detailed_tender_info(tender_id):
+    try:
+        response = requests.get(f"{DETAIL_API_URL}{tender_id}")
+        response.raise_for_status()
+        data = response.json()
+        if data['data']['value']['amount'] not in (None, ""):
+            amount = data['data']['value']['amount']
+        else:
+            amount = 0
+        if "description" in data['data'].keys() and data['data']['description'] not in (None, ""):
+            description = data['data']['description']
+        else:
+            description = "Опис не надано"
+        return dict(amount=amount, description=description)
+    except requests.exceptions.RequestException as e:
+        print(e)
 
 
 class RegisterView(generic.CreateView):
@@ -61,9 +80,13 @@ class ButtonToGetTenderView(generic.View):
 
             for item in data['data'][:BATCH_SIZE]:
                 if not Tender.objects.filter(tender_id=item['id']).exists():
+                    amount, description = get_detailed_tender_info(item['id']).values()
                     tender = Tender(
                         tender_id=item['id'],
-                        date_modified=item['dateModified']
+                        date_modified=item['dateModified'],
+                        amount=amount,
+                        description=description
+
                     )
                     tender.save()
 
