@@ -13,7 +13,7 @@ from tenders.forms import UserCreateForm
 from tenders.models import Tender
 from tenders.utils import get_tenders_info_all
 
-API_URL = 'https://public.api.openprocurement.org/api/0/tenders?descending=1'
+API_URL = "https://public.api.openprocurement.org/api/0/tenders?descending=1"
 
 logger = logging.getLogger()
 
@@ -22,8 +22,8 @@ logger = logging.getLogger()
 
 class RegisterView(generic.CreateView):
     model = get_user_model()
-    template_name = 'registration/register.html'
-    success_url = reverse_lazy('tenders:index')
+    template_name = "registration/register.html"
+    success_url = reverse_lazy("tenders:index")
     form_class = UserCreateForm
 
 
@@ -32,8 +32,9 @@ class IndexView(LoginView):
     redirect_authenticated_user = True
 
 
-""" Add the total amount of all tenders to the context. This is done in a separate view because the total amount is
-displayed on every page, and it would be inefficient to calculate it every time a page is loaded.
+""" Add the total amount of all tenders to the context.
+This is done in a separate view because total amount displays on every page,
+and it would be inefficient to calculate it every time a page is loaded.
 Login url is set to "/" to redefine the default account/login/ url. """
 
 
@@ -47,13 +48,16 @@ class TenderListView(LoginRequiredMixin, generic.ListView):
         context = super().get_context_data(**kwargs)
 
         if Tender.objects.exists():
-            total_tender_amount = round(Tender.objects.aggregate(Sum('amount'))['amount__sum'], 2)
-            context['total_tender_amount'] = total_tender_amount
+            total_tender_amount = round(
+                Tender.objects.aggregate(Sum("amount"))["amount__sum"], 2
+            )
+            context["total_tender_amount"] = total_tender_amount
 
         return context
 
 
-""" Button handler view to initiate the process of fetching tenders from the API. """
+""" Button handler view.
+Initiates the process of fetching tenders from the API. """
 
 
 async def button_to_fetch_tender(request):

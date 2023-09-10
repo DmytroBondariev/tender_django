@@ -7,7 +7,7 @@ from django.dispatch import receiver
 
 @receiver(post_migrate)
 def create_demo_user(sender, **kwargs):
-    if sender.name == 'tenders':
+    if sender.name == "tenders":
         get_user_model().objects.all().delete()
         get_user_model().objects.create_user(
             username="demo",

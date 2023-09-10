@@ -19,11 +19,13 @@ async def get_tenders_info_all(url):
 
         tasks = []
 
-        for item in data['data'][:BATCH_SIZE]:
-            if not await check_tender_exists(item['id']):
-                tasks.append(fetch_tender_details(item['id'], client))
+        for item in data["data"][:BATCH_SIZE]:
+            if not await check_tender_exists(item["id"]):
+                tasks.append(fetch_tender_details(item["id"], client))
             else:
-                tasks.append(fetch_tender_details(item['id'], client, update=True))
+                tasks.append(
+                    fetch_tender_details(item["id"], client, update=True)
+                )
 
         await asyncio.gather(*tasks)
 
@@ -36,9 +38,9 @@ async def fetch_tender_details(tender_id, client, update=False):
     tender_page.raise_for_status()
     tender_data = tender_page.json()
 
-    date_modified = tender_data['data']['dateModified']
-    amount = tender_data['data']['value']['amount'] or 0
-    description = tender_data['data'].get('description') or 'Опис не надано'
+    date_modified = tender_data["data"]["dateModified"]
+    amount = tender_data["data"]["value"]["amount"] or 0
+    description = tender_data["data"].get("description") or "Опис не надано"
 
     if update:
         await update_tender(tender_id, date_modified, amount, description)
@@ -47,6 +49,6 @@ async def fetch_tender_details(tender_id, client, update=False):
             tender_id=tender_id,
             date_modified=date_modified,
             amount=amount,
-            description=description
+            description=description,
         )
         await save_tender(tender)

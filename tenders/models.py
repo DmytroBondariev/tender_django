@@ -14,7 +14,13 @@ class Tender(models.Model):
         verbose_name_plural = "Tenders"
 
     def __str__(self):
-        return f"Tender id: {self.tender_id}; ({self.description}, {self.amount}). Date modified: {self.date_modified}"
+        return (
+            f"Tender id: "
+            f"{self.tender_id}; "
+            f"({self.description}, "
+            f"{self.amount}). "
+            f"Date modified: {self.date_modified}"
+        )
 
 
 class User(AbstractUser):

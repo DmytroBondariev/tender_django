@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from tenders.models import Tender
 
-TENDER_URL = reverse('tenders:tender-list')
+TENDER_URL = reverse("tenders:tender-list")
 
 
 class PublicTenderTests(TestCase):
@@ -28,22 +28,21 @@ class PrivateTenderTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(
-            response=response,
-            template_name="pages/tender_list.html"
+            response=response, template_name="pages/tender_list.html"
         )
 
     def test_retrieve_tenders(self):
         Tender.objects.create(
             tender_id=1,
-            description='Lorem ipsum dolor sit amet',
+            description="Lorem ipsum dolor sit amet",
             amount=1000,
-            date_modified=timezone.now()
+            date_modified=timezone.now(),
         )
         Tender.objects.create(
             tender_id=2,
-            description='Lorem ipsum dolor sit amet',
+            description="Lorem ipsum dolor sit amet",
             amount=1000,
-            date_modified=timezone.now()
+            date_modified=timezone.now(),
         )
 
         response = self.client.get(TENDER_URL)
@@ -53,26 +52,27 @@ class PrivateTenderTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.context["tender_list"]), list(tenders))
         self.assertTemplateUsed(
-            response=response,
-            template_name="pages/tender_list.html"
+            response=response, template_name="pages/tender_list.html"
         )
 
 
 class RegisterViewTests(TestCase):
     def test_register_view_accessible_by_name(self):
-        response = self.client.get(reverse('tenders:register'))
+        response = self.client.get(reverse("tenders:register"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'registration/register.html')
+        self.assertTemplateUsed(response, "registration/register.html")
 
     def test_register_view_creates_user(self):
         data = {
-            'username': 'new_user',
-            'password1': 'Test12345!',
-            'password2': 'Test12345!'
+            "username": "new_user",
+            "password1": "Test12345!",
+            "password2": "Test12345!",
         }
-        response = self.client.post(reverse('tenders:register'), data)
-        self.assertEqual(response.status_code, 302)  # Redirects after successful registration
-        self.assertTrue(get_user_model().objects.filter(username='new_user').exists())
+        response = self.client.post(reverse("tenders:register"), data)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            get_user_model().objects.filter(username="new_user").exists()
+        )
 
 
 class ButtonToFetchViewTest(TestCase):
@@ -84,14 +84,14 @@ class ButtonToFetchViewTest(TestCase):
         self.client.force_login(self.user)
 
     def test_button_to_fetch_tender(self):
-        response = self.client.post(reverse('tenders:tender-update-button'))
+        response = self.client.post(reverse("tenders:tender-update-button"))
         self.assertEqual(response.status_code, 302)
 
     def test_button_to_fetch_tender_redirects_to_tender_list(self):
-        response = self.client.post(reverse('tenders:tender-update-button'))
-        self.assertEqual(response.url, reverse('tenders:tender-list'))
+        response = self.client.post(reverse("tenders:tender-update-button"))
+        self.assertEqual(response.url, reverse("tenders:tender-list"))
 
     def test_button_to_fetch_tender_updates_tender_list(self):
-        response = self.client.post(reverse('tenders:tender-update-button'))
+        response = self.client.post(reverse("tenders:tender-update-button"))
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Tender.objects.count(), 10)
